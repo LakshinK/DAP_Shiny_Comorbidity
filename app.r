@@ -37,8 +37,17 @@ ui <- fluidPage(
 )
 
 server <- function(input, output){
+  
+  
   #Reactive expression for pulling which age group was selected
   AgeGroup <- reactive(ageToIndex(input$AgeChosen))
+  
+  #Input Update for Index condition availability
+  eventUpdate <- reactive({list(input$appMode, input$AgeChosen)})
+  observeEvent(eventUpdate(),
+               updateSelectInput(inputId = "indexCondition", choices = VL() %>% pull(Var1)))
+  
+  
   #Reactive expression assigning proper Edge List
   EL <- reactive(ELList[[AgeGroup()]] %>%
                    filter(relativeRisk > input$RRCutoff))
@@ -84,14 +93,16 @@ server <- function(input, output){
                                                           function(x) sum(EL() %>%
                                                                             filter(i == VL()$Var1[x] | j == VL()$Var1[x]) %>%
                                                                             pull(relativeRisk)))) %>%
+                                      mutate(deg = sapply(1:nrow(VL()),
+                                                          function(x) nrow(EL() %>%
+                                                                            filter(i == VL()$Var1[x] | j == VL()$Var1[x])))) %>%
                                       rename("Condition" = Var1,
                                              "Frequency" = Freq,
                                              "Disease Type" = typeName,
                                              "Comorbidity Index" = CMI)
     })
   
-  #Input Update for Index condition availability
-  # observeEvent(input$)
+  
 }
 
 shinyApp(ui, server)
