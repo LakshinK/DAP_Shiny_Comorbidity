@@ -25,9 +25,13 @@ catTable <- data.frame(ageCat = c("Young Adult", "Middle Adult",
 ELList <- list(yaEL, miEL, maEL, sEL)
 VLList <- list(yaVL, miVL, maVL, sVL)
 
+
+
 ageToIndex <- function(AgeCat){
   catTable %>% 
     filter(ageCat == AgeCat) %>%
     pull(index) %>%
     return()
 }
+
+
