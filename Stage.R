@@ -30,7 +30,7 @@ catTable <- data.frame(ageCat = c("All Dogs","Young Adult", "Middle Adult",
 ELList <- list(allEL, yaEL, miEL, maEL, sEL)
 VLList <- list(allVL, yaVL, miVL, maVL, sVL)
 
-
+types <- allVL %>% pull(typeName) %>% unique()
 
 ageToIndex <- function(AgeCat){
   catTable %>% 

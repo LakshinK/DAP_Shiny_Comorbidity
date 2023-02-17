@@ -31,7 +31,7 @@ ui <- fluidPage(
     
     conditionalPanel(
       condition = "input.typeStratOnOff == 1",
-      checkboxGroupInput("typeStrat", "Types to include", choices = c("Yessir"))
+      checkboxGroupInput("typeStrat", "Types to include", choices = types, selected = types)
     )
     
   ),
@@ -64,14 +64,22 @@ server <- function(input, output){
   )
   
   #Input update for types that can be checked off
-  typeChecked <- reactive({list(input$typeStratOnOff, input$indexCondition)})
+  typeChecked <- reactive({list(input$typeStratOnOff,
+                                input$indexCondition
+                                )})
   observeEvent(typeChecked(),{
     if(input$appMode == "All Conditions"){
-      updateCheckboxGroupInput(inputId = "typeStrat", choices = unique(VL() %>%
-                                                                         pull(typeName)))
+      updateCheckboxGroupInput(inputId = "typeStrat", 
+                               choices = unique(VL() %>%
+                                  pull(typeName)),
+                               selected = unique(VL() %>%
+                                  pull(typeName)))
     }else{
-      updateCheckboxGroupInput(inputId = "typeStrat", choices = unique(indexVL() %>%
-                                                                         pull(typeName)))
+      updateCheckboxGroupInput(inputId = "typeStrat", 
+                               choices = unique(indexVL() %>%
+                                  pull(typeName)),
+                               selected = unique(indexVL() %>%
+                                  pull(typeName)))
     }
     
   })
@@ -112,14 +120,14 @@ server <- function(input, output){
     
     #If statement where first condition is for all conditions, second is for index conditions
     if(input$appMode == "All Conditions"){
-      plot(net(),
+      plot(induced_subgraph(net(), V(net())[typeName %in% input$typeStrat]),
            vertex.color = V(net())$type,
            vertex.label.cex = 0.5,
            vertex.size = log10(V(net())$Freq)*5,
            vertex.frame.width = 2,
            edge.width = log10(E(net())$relativeRisk))
     }else{
-      plot(indexNet(),
+      plot(induced_subgraph(indexNet(), V(indexNet())[typeName %in% input$typeStrat]),
            vertex.color = V(indexNet())$type,
            vertex.label.cex = 0.5,
            vertex.size = log10(V(indexNet())$Freq)*5,
