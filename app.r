@@ -11,10 +11,12 @@ ui <- fluidPage(
   # Sidebar panel for inputs ----
   sidebarPanel(
     #Age Group Selection (access using label AgeGroup)
-    selectInput("AgeChosen", label = "Age Group", c("Young Adult", "Middle Adult", 
+    selectInput("AgeChosen", label = "Age Group", c("All Dogs","Young Adult", "Middle Adult", 
                                            "Mature Adult", "Senior")),
     #Slider for rel risk cutoff (Access using RRCutoff)
     numericInput("RRCutoff", "Relative Risk Cutoff", value = 1, min = 0, max = 150),
+    
+    
     
     #Radio Button for choosing mode
     radioButtons("appMode", "Analysis Mode", choices = c("All Conditions", "By Index Condition")),
@@ -22,7 +24,16 @@ ui <- fluidPage(
     conditionalPanel(
       condition = "input.appMode == 'By Index Condition'",
       selectInput("indexCondition", "Index Condition", choices = NULL)
+    ),
+    
+    #Type Select
+    checkboxInput("typeStratOnOff", "Stratify By Type", FALSE),
+    
+    conditionalPanel(
+      condition = "input.typeStratOnOff == 1",
+      checkboxGroupInput("typeStrat", "Types to include", choices = c("Yessir"))
     )
+    
   ),
   
   # Main panel for displaying outputs ----
@@ -44,12 +55,33 @@ server <- function(input, output){
   
   #Input Update for Index condition availability
   switchAgeOrMode <- reactive({list(input$appMode, input$AgeChosen)})
-  observeEvent(switchAgeOrMode(),
-               updateSelectInput(inputId = "indexCondition", choices = VL() %>% pull(Var1)))
+  observeEvent(switchAgeOrMode(),{
+    #freezeReactiveValue(input, "indexCondition")
+    updateSelectInput(inputId = "indexCondition", choices = VL() %>%
+                        arrange(Var1) %>%
+                        pull(Var1))
+    }
+  )
+  
+  #Input update for types that can be checked off
+  typeChecked <- reactive({list(input$typeStratOnOff, input$indexCondition)})
+  observeEvent(typeChecked(),{
+    if(input$appMode == "All Conditions"){
+      updateCheckboxGroupInput(inputId = "typeStrat", choices = unique(VL() %>%
+                                                                         pull(typeName)))
+    }else{
+      updateCheckboxGroupInput(inputId = "typeStrat", choices = unique(indexVL() %>%
+                                                                         pull(typeName)))
+    }
+    
+  })
+  
+  #Reactive expression for type picking
+  typeList <- reactive(input$typeStrat)
   
   #Reactive expression assigning proper Edge List
   EL <- reactive(ELList[[AgeGroup()]] %>%
-                   filter(relativeRisk > input$RRCutoff))
+                   filter(relativeRisk > input$RRCutoff)) 
   #Reactive expression assigning proper Vertex List
   VL <- reactive(VLList[[AgeGroup()]] %>%
                    filter(Var1 %in% c(EL()$i, EL()$j)))
@@ -76,7 +108,7 @@ server <- function(input, output){
   output$netPlot <- renderPlot({
     
     #Set parameters (Margin of 0)
-    par(mar = c(0,0,0,0))
+    par(mar = c(0,3.5,0,3.5))
     
     #If statement where first condition is for all conditions, second is for index conditions
     if(input$appMode == "All Conditions"){
@@ -85,7 +117,7 @@ server <- function(input, output){
            vertex.label.cex = 0.5,
            vertex.size = log10(V(net())$Freq)*5,
            vertex.frame.width = 2,
-           margin = 0)
+           edge.width = log10(E(net())$relativeRisk))
     }else{
       plot(indexNet(),
            vertex.color = V(indexNet())$type,
@@ -94,8 +126,8 @@ server <- function(input, output){
            vertex.frame.width = 2,
            layout = layout_as_star(indexNet(), center = V(indexNet())[V(indexNet())$name == input$indexCondition]),
            vertex.label.degree = pi / 2,
-           vertex.label.dist = 1,
-           margin = 0)
+           vertex.label.dist = 1.25,
+           edge.width = log10(E(indexNet())$relativeRisk))
     }
   },
   #Plot parameters

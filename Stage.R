@@ -1,3 +1,8 @@
+allEL <- allDogList[[1]]
+allVL <- allDogList[[2]]
+allNet <- allDogList[[3]]
+allAdjMat <- allDogList[[4]]
+
 yaEL <- youngAdultList[[1]]
 yaVL <- youngAdultList[[2]]
 yaNet <- youngAdultList[[3]]
@@ -18,12 +23,12 @@ sVL <- seniorList[[2]]
 sNet <- seniorList[[3]]
 sAdjMat <- seniorList[[4]]
 
-catTable <- data.frame(ageCat = c("Young Adult", "Middle Adult", 
+catTable <- data.frame(ageCat = c("All Dogs","Young Adult", "Middle Adult", 
                                   "Mature Adult", "Senior"),
-                       index = c(1:4))
+                       index = c(1:5))
 
-ELList <- list(yaEL, miEL, maEL, sEL)
-VLList <- list(yaVL, miVL, maVL, sVL)
+ELList <- list(allEL, yaEL, miEL, maEL, sEL)
+VLList <- list(allVL, yaVL, miVL, maVL, sVL)
 
 
 
